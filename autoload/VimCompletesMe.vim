@@ -7,6 +7,8 @@ function! VimCompletesMe#vim_completes_me(shift_tab)
   let dirs = ["\<c-n>", "\<c-p>"]
   let dir = g:vcm_direction =~? '[nf]'
   let map = exists('b:vcm_tab_complete') ? b:vcm_tab_complete : ''
+  let fallbackCompletion = !exists('b:vcm_fallback_completion') 
+                          \? "\<c-n>" : b:vcm_fallback_completion
 
   if pumvisible()
     return a:shift_tab ? dirs[dir] : dirs[!dir]
@@ -32,7 +34,7 @@ function! VimCompletesMe#vim_completes_me(shift_tab)
     " Check position so that we can fallback if at the same pos.
     if get(b:, 'tab_complete_pos', []) == pos && b:completion_tried
       echo "Falling back to keyword"
-      let exp = "\<C-x>" . dirs[dir]
+      let exp = "\<C-x>" . fallbackCompletion
     else
       echo "Looking for members..."
       if !empty(&completefunc) && map ==? "user"
@@ -51,7 +53,7 @@ function! VimCompletesMe#vim_completes_me(shift_tab)
   " If we already tried special completion, fallback to keyword completion
   if exists('b:completion_tried') && b:completion_tried
     let b:completion_tried = 0
-    return "\<C-e>" . dirs[!dir]
+    return "\<C-e>" . fallbackCompletion
   endif
 
   " Fallback to user's vcm_tab_complete or if not set, to keyword completion
@@ -64,6 +66,6 @@ function! VimCompletesMe#vim_completes_me(shift_tab)
   elseif map ==? "vim"
     return dir ? "\<C-x>\<C-v>" : "\<C-x>\<C-v>" . return_exp
   else
-    return dirs[!dir]
+    return fallbackCompletion
   endif
 endfunction
